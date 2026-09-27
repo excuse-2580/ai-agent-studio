@@ -96,8 +96,8 @@ jobs:
           retention-days: 7
 
       # 失败时把日志尾部写回仓库，方便直接查看（这个文件不触发构建）
-      - name: 把失败日志写回仓库
-        if: failure()
+      - name: 把日志写回仓库
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -168,14 +168,21 @@ jobs:
 
           # 重试几次，防止上一个 run 刚删完还没生效
           for i in 1 2 3 4 5; do
-            if gh release create android-ci \
+            OUT=$(gh release create android-ci \
               --prerelease \
               --title "AI Agent Studio · 安卓 APK（自动构建）" \
               --notes "$NOTES" \
-              "$APK"; then
+              "$APK" 2>&1)
+            if [ $? -eq 0 ]; then
               echo "Release 发布成功（第 $i 次尝试）"
               exit 0
             fi
+            {
+              echo "=== 第 $i 次发布失败 ==="
+              echo "$OUT"
+              echo "gh 版本: $(gh --version | head -1)"
+              echo "GH_TOKEN 是否设置: $([ -n "$GH_TOKEN" ] && echo yes || echo no)"
+            } >> build.log
             echo "第 $i 次失败，清理后重试…"
             gh release delete android-ci --yes --cleanup-tag 2>/dev/null || true
             git push origin :refs/tags/android-ci 2>/dev/null || true
