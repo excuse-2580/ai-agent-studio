@@ -114,38 +114,3 @@ jobs:
           make_latest: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 把日志写回仓库
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd android-native
-          {
-            echo "commit: ${GITHUB_SHA}"
-            echo "date:   $(date -u)"
-            echo "=== What went wrong ==="
-            awk '/What went wrong:/{f=1} f{print; n++} n>40{exit}' build.log
-            echo
-            echo "=== Caused by ==="
-            grep -m8 -A4 "Caused by" build.log
-            echo
-            echo "=== 错误片段 ==="
-            grep -nE "error:|CMake Error|FAILED|Could not|requires|^e: " build.log | head -40
-            echo
-            echo "=== Kotlin 错误 ==="
-            grep -E "^e: " build.log | head -60
-            echo
-            echo "=== CMake 详细 ==="
-            grep -m10 -B2 -A6 "CMake Error" build.log
-            echo
-            echo "=== 日志尾部 ==="
-            tail -120 build.log
-          } > "../ci-fail-${GITHUB_RUN_NUMBER}.txt" 2>&1 || true
-          cd ..
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "ci-fail-${GITHUB_RUN_NUMBER}.txt"
-          git commit -m "ci: 保存失败日志（自动）" || exit 0
-          git push
-
