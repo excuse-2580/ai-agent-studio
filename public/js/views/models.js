@@ -30,6 +30,61 @@ export function renderModels(mount, ctx) {
   `;
   page.appendChild(intro);
 
+  /* ---------- 手机本地运行引导（只在 APK 里显示） ---------- */
+  const isNative = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
+  if (isNative) {
+    const localCard = document.createElement('div');
+    localCard.className = 'card card--outlined';
+    localCard.style.margin = '0 0 16px';
+    localCard.innerHTML = `
+      <div class="row" style="align-items:flex-start;gap:12px">
+        ${icon('bolt', { size: 22 })}
+        <div class="grow">
+          <b style="font:var(--title-s)">在这台手机上跑本地模型</b>
+          <p class="muted" style="font:var(--body-s);margin:6px 0 0;line-height:1.6">
+            装个 Termux，跑起 llama.cpp，模型就装在你手机里 —— 断网也能聊，数据哪都不去。
+          </p>
+        </div>
+      </div>
+      <div class="row row--wrap" style="margin-top:12px">
+        <button class="btn btn--tonal btn--sm" data-act="use-local">${icon('check', {
+          size: 16,
+        })}<span>一键填入本机地址</span></button>
+        <button class="btn btn--text btn--sm" data-act="steps">查看步骤</button>
+      </div>
+      <div data-role="steps" hidden style="margin-top:12px"></div>
+    `;
+
+    const stepsEl = localCard.querySelector('[data-role="steps"]');
+    localCard.querySelector('[data-act="use-local"]').onclick = async () => {
+      await api.createModel({
+        name: '本机模型（手机 Termux）',
+        type: 'llamacpp',
+        baseURL: 'http://127.0.0.1:8080/v1',
+        apiKey: '',
+        model: 'local-model',
+        contextLength: 2048,
+      });
+      toast('已添加 127.0.0.1:8080，先确认 Termux 里的服务已启动');
+      await ctx.reload();
+    };
+    localCard.querySelector('[data-act="steps"]').onclick = () => {
+      const open = !stepsEl.hidden;
+      stepsEl.hidden = !open;
+      if (open) return;
+      stepsEl.innerHTML = `
+        <p class="muted" style="font:var(--body-s);margin:0 0 8px">在 Termux 里粘贴这一行，跟着提示走完：</p>
+        <pre class="cmd">bash &lt;(curl -sL https://raw.githubusercontent.com/excuse-2580/ai-agent-studio/main/tools/termux-setup.sh)</pre>
+        <p class="muted" style="font:var(--body-s);margin:10px 0 0;line-height:1.7">
+          Termux 只从 F-Droid 或 GitHub 下载（Play 商店的版本已停维护）。<br/>
+          跑完记得把系统设置里 Termux 的电池策略改成「无限制」，否则锁屏就被杀。<br/>
+          手机适合跑 1-3B 的小模型，7B 以上会很慢。
+        </p>
+      `;
+    };
+    page.appendChild(localCard);
+  }
+
   /* ---------- 模型源列表 ---------- */
   const listTitle = document.createElement('div');
   listTitle.className = 'section-title';

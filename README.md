@@ -84,24 +84,15 @@ npm run build:android   # 等价于 cap sync + ./gradlew assembleDebug
 > APK 里只有前端界面，不含 Node 服务（安卓跑不了），所以电脑上要开着服务；
 > 如果你只想用云端 API，可以把服务部署到一台常开的机器（NAS / 小服务器 / 云主机）上，手机就随时能连。
 
+### 手机本地跑模型（不依赖电脑）
 
-### 方式三：让 GitHub 云端帮你编译 APK（不用装 Android Studio）
+想在手机里直接跑 `.gguf`、断网也能聊？看这份专门的手册：
 
-仓库根目录的 `build-apk.yml` 是一条现成的自动构建流水线。只要把它放到 `.github/workflows/build-apk.yml`，GitHub 的服务器就会自动编译出 APK，你直接下载安装。
+**→ [docs/手机本地运行.md](docs/手机本地运行.md)**
 
-三步搞定：
+一句话版本：装 Termux → 粘贴一行脚本 → 模型跑在手机里 → App 填 `http://127.0.0.1:8080/v1`。
 
-1. 打开仓库页面，点右上角 **"+" → Create new file**
-2. 文件名框里填 `.github/workflows/build-apk.yml`（GitHub 会自动建目录）
-3. 把根目录 `build-apk.yml` 里注释之间的那段内容整段粘进去 → **Commit changes**
-
-然后：
-
-- 到 **Actions** 标签页看编译进度，大概几分钟
-- 跑完后到右侧 **Releases** 里下载 `app-debug.apk`，传到手机装上就行
-- 以后每次 push 代码，它都会自动重新编译并更新这个 Release
-
-> 云端编译用的是 GitHub 免费额度，公开仓库不花钱。
+> 注意：这条路径**必须用 APK**（PWA 连电脑的方案里，`127.0.0.1` 指的是电脑自己，够不到手机）。
 
 ### 手机上怎么连模型
 
@@ -182,17 +173,6 @@ npm run build:android   # 等价于 cap sync + ./gradlew assembleDebug
 - **流式输出**开关、**思考过程**显示开关
 - **GGUF 扫描目录**
 - **导出 / 导入 JSON 备份**、恢复出厂设置
-
----
-
-## 下载安卓 APK
-
-手机扫这个二维码，直达下载页（也可以直接在右侧 **Releases** 里下载 `app-debug.apk`）：
-
-![APK 下载二维码](docs/apk-download-qr.png)
-
-> APK 由 GitHub Actions 自动编译。首次打开要在「设置 → 连接」填入电脑上的服务地址，
-> 点「测试连接」看到 ✅ 就能开始聊天。
 
 ---
 

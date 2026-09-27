@@ -12,5 +12,5 @@
     "androidScheme": "https",
     "cleartext": true
   },
-  "_comment": "webDir 指向纯静态前端 public。APK 内不含 Node 服务，首次打开请在「设置 → 连接」填入电脑服务地址，如 http://192.168.1.10:5178。调试时想直连电脑可临时加 server.url，打包前请删掉。"
+  "_comment": "webDir 指向纯静态前端 public。APK 内不含 Node 服务：① 连电脑上的服务 → 「设置 → 连接」填 http://192.168.x.x:5178；② 在手机本地跑模型 → 装 Termux 跑 llama.cpp，填 http://127.0.0.1:8080（见 docs/手机本地运行.md）。allowMixedContent + usesCleartextTraffic 是为了让 https://localhost 页面能访问本机 http 服务。"
 }
