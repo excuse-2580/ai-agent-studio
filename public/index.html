@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#141218" />
+    <meta name="description" content="AI Agent Studio — 自由创建、删除与设定 AI 智能体，支持本地 .gguf 模型与云端大模型" />
+    <title>AI Agent Studio</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <!-- 启动遮罩 -->
+    <div class="boot" id="boot">
+      <div class="boot__mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="48" height="48">
+          <rect x="7" y="14" width="34" height="26" rx="10" fill="currentColor" opacity=".18" />
+          <rect x="7" y="14" width="34" height="26" rx="10" fill="none" stroke="currentColor" stroke-width="2" />
+          <circle cx="16.5" cy="26" r="3" fill="currentColor" />
+          <circle cx="31.5" cy="26" r="3" fill="currentColor" />
+          <path d="M24 14V8M24 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <p class="boot__text">正在唤醒智能体…</p>
+    </div>
+
+    <div class="app" id="app" hidden>
+      <!-- 侧边导航（MD3 Navigation Rail） -->
+      <nav class="rail" id="rail" aria-label="主导航"></nav>
+
+      <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="view" id="view" tabindex="-1"></main>
+      </div>
+    </div>
+
+    <!-- 底部导航（MD3 Navigation Bar，窄屏显示） -->
+    <nav class="navbar" id="navbar" aria-label="底部导航"></nav>
+
+    <!-- 浮层容器 -->
+    <div id="scrim" class="scrim" hidden></div>
+    <div id="dialog-root" class="dialog-root" hidden></div>
+    <div id="sheet-root" class="sheet-root" hidden></div>
+    <div id="snackbar-root" class="snackbar-root" aria-live="polite"></div>
+
+    <script type="module" src="/js/app.js"></script>
+    <noscript>
+      <p style="padding: 24px; font-family: system-ui">这个应用需要启用 JavaScript 才能运行。</p>
+    </noscript>
+  </body>
+</html>

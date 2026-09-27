@@ -1,0 +1,25 @@
+{
+  "name": "ai-agent-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Agent Studio — 自由创建 / 删除 / 设定 AI 智能体的本地工作台，支持本地 .gguf 模型与任意大模型 API，界面遵循 Material Design 3",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "gguf": "node server/gguf-cli.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "llm",
+    "gguf",
+    "llama.cpp",
+    "material-design-3"
+  ],
+  "license": "MIT"
+}
