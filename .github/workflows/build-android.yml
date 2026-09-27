@@ -19,6 +19,11 @@ on:
 permissions:
   contents: write
 
+# 防止连续 push 触发多个 run 抢同一个 Release（之前就是这样失败的）
+concurrency:
+  group: build-android-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -159,9 +164,22 @@ jobs:
           # 覆盖式更新同一个预发布版本，避免堆积
           gh release delete android-ci --yes --cleanup-tag 2>/dev/null || true
           git push origin :refs/tags/android-ci 2>/dev/null || true
+          sleep 3
 
-          gh release create android-ci \
-            --prerelease \
-            --title "AI Agent Studio · 安卓 APK（自动构建）" \
-            --notes "$NOTES" \
-            "$APK"
+          # 重试几次，防止上一个 run 刚删完还没生效
+          for i in 1 2 3 4 5; do
+            if gh release create android-ci \
+              --prerelease \
+              --title "AI Agent Studio · 安卓 APK（自动构建）" \
+              --notes "$NOTES" \
+              "$APK"; then
+              echo "Release 发布成功（第 $i 次尝试）"
+              exit 0
+            fi
+            echo "第 $i 次失败，清理后重试…"
+            gh release delete android-ci --yes --cleanup-tag 2>/dev/null || true
+            git push origin :refs/tags/android-ci 2>/dev/null || true
+            sleep 8
+          done
+          echo "Release 发布失败"
+          exit 1
