@@ -4,7 +4,12 @@ project(ggml-jni CXX)
 # ---------------------------------------------------------------------------
 # llama.cpp 源码位置（git submodule 或 scripts/fetch-llama-cpp.sh 拉下来的）
 # ---------------------------------------------------------------------------
-set(LLAMA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/llama.cpp"
+# 路径说明（从 app/src/main/cpp 往上数）：
+#   ..        → app/src/main
+#   ../..     → app/src
+#   ../../..  → app
+#   ../../../.. → android-native   ← llama.cpp 就放在这一层的 third_party/
+set(LLAMA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../third_party/llama.cpp"
     CACHE PATH "llama.cpp 源码目录")
 
 if(NOT EXISTS "${LLAMA_DIR}/CMakeLists.txt")
