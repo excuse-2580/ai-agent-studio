@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.excuse2580.aas"
-    compileSdk = 34
+    compileSdk = 35
     // 不硬编码 NDK 版本：CI 机器上预装的版本各不相同，
     // 写死会让 Gradle 现去下载、经常超时。交给 AGP 挑已装的即可。
 
