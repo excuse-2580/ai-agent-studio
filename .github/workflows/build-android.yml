@@ -42,8 +42,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       # llama.cpp 源码不进仓库（太大），编译时现拉
+      # 锁死 commit：上游 API 改得很勤，不锁的话哪天就编不过了
       - name: 拉取 llama.cpp
         working-directory: android-native
+        env:
+          LLAMA_CPP_REF: 2b129ccfa03aea330d2d9ac4650a10de393dbe3a
         run: bash scripts/fetch-llama-cpp.sh
 
       - name: 授权 gradlew
