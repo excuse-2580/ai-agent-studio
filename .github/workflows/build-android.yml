@@ -45,6 +45,17 @@ jobs:
           ls "$ANDROID_HOME/platforms" 2>/dev/null | head
           ls "$ANDROID_HOME/build-tools" 2>/dev/null | head
           cmake --version | head -1
+          # 新版 AndroidX 依赖普遍要求 compileSdk 35，缺就装
+          if [ -d "$ANDROID_HOME/platforms/android-35" ]; then
+            echo "已有 android-35"
+          elif [ -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+              --licenses >/dev/null 2>&1 || true
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+              --install "platforms;android-35" "build-tools;35.0.0" 2>&1 | tail -5
+          else
+            echo "（没有 sdkmanager，用自带的 platform）"
+          fi
 
       - name: Gradle 缓存
         uses: gradle/actions/setup-gradle@v4
@@ -89,8 +100,14 @@ jobs:
           {
             echo "commit: ${GITHUB_SHA}"
             echo "date:   $(date -u)"
+            echo "=== What went wrong ==="
+            awk '/What went wrong:/{f=1} f{print; n++} n>40{exit}' build.log
+            echo
+            echo "=== Caused by ==="
+            grep -m8 -A4 "Caused by" build.log
+            echo
             echo "=== 错误片段 ==="
-            grep -nE "error:|error\.|FAILED|CMake Error|fatal:|Could not|failed" build.log | head -60
+            grep -nE "error:|CMake Error|FAILED|Could not|requires" build.log | head -40
             echo
             echo "=== 日志尾部 ==="
             tail -120 build.log
