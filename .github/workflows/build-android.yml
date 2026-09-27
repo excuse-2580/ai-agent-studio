@@ -103,60 +103,18 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      # 用成熟的发布 action，比手写 gh 命令稳
       - name: 发布到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-native-latest
+          name: "AI Agent Studio · 原生安卓 APK（含 llama.cpp）"
+          files: android-native/app/build/outputs/apk/debug/*.apk
+          prerelease: true
+          make_latest: false
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -e
-          APK=$(ls android-native/app/build/outputs/apk/debug/*.apk | head -1)
-          echo "产物：$APK（$(du -h "$APK" | cut -f1））"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          NOTES='GitHub Actions 自动编译，提交 ${{ github.sha }}
-
-          ## 装到手机
-          下载下面的 app-debug.apk，传到手机安装（提示"未知来源"时允许一次就行）。
-
-          ## 怎么用离线模型
-          1. 先下载一个 GGUF 模型放到手机上，推荐 Qwen2.5-1.5B-Instruct-Q4_K_M（约 1GB）
-             （HuggingFace 打不开就把网址里的 huggingface.co 换成 hf-mirror.com）
-          2. 打开 App →「模型」→ 选 .gguf → 点「加载」
-          3. 等状态变成"已就绪"，回「对话」页就能离线聊了
-
-          ## 云端模型
-          在「模型」页点 DeepSeek / Kimi / 智谱 / 硅基流动 / OpenAI / 混元 一键填写，
-          Ollama 和 llama.cpp server 填电脑的局域网地址也能用。'
-
-          # 覆盖式更新同一个预发布版本，避免堆积
-          gh release delete android-ci --yes --cleanup-tag 2>/dev/null || true
-          git push origin :refs/tags/android-ci 2>/dev/null || true
-          sleep 3
-
-          # 重试几次，防止上一个 run 刚删完还没生效
-          for i in 1 2 3 4 5; do
-            OUT=$(gh release create android-ci \
-              --prerelease \
-              --title "AI Agent Studio · 安卓 APK（自动构建）" \
-              --notes "$NOTES" \
-              "$APK" 2>&1)
-            if [ $? -eq 0 ]; then
-              echo "Release 发布成功（第 $i 次尝试）"
-              exit 0
-            fi
-            {
-              echo "=== 第 $i 次发布失败 ==="
-              echo "$OUT"
-              echo "gh 版本: $(gh --version | head -1)"
-              echo "GH_TOKEN 是否设置: $([ -n "$GH_TOKEN" ] && echo yes || echo no)"
-            } >> build.log
-            echo "第 $i 次失败，清理后重试…"
-            gh release delete android-ci --yes --cleanup-tag 2>/dev/null || true
-            git push origin :refs/tags/android-ci 2>/dev/null || true
-            sleep 8
-          done
-          echo "Release 发布失败"
-          exit 1
-
-      # 失败时把日志尾部写回仓库，方便直接查看（这个文件不触发构建）
       - name: 把日志写回仓库
         if: always()
         env:
