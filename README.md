@@ -84,6 +84,25 @@ npm run build:android   # 等价于 cap sync + ./gradlew assembleDebug
 > APK 里只有前端界面，不含 Node 服务（安卓跑不了），所以电脑上要开着服务；
 > 如果你只想用云端 API，可以把服务部署到一台常开的机器（NAS / 小服务器 / 云主机）上，手机就随时能连。
 
+
+### 方式三：让 GitHub 云端帮你编译 APK（不用装 Android Studio）
+
+仓库根目录的 `build-apk.yml` 是一条现成的自动构建流水线。只要把它放到 `.github/workflows/build-apk.yml`，GitHub 的服务器就会自动编译出 APK，你直接下载安装。
+
+三步搞定：
+
+1. 打开仓库页面，点右上角 **"+" → Create new file**
+2. 文件名框里填 `.github/workflows/build-apk.yml`（GitHub 会自动建目录）
+3. 把根目录 `build-apk.yml` 里注释之间的那段内容整段粘进去 → **Commit changes**
+
+然后：
+
+- 到 **Actions** 标签页看编译进度，大概几分钟
+- 跑完后到右侧 **Releases** 里下载 `app-debug.apk`，传到手机装上就行
+- 以后每次 push 代码，它都会自动重新编译并更新这个 Release
+
+> 云端编译用的是 GitHub 免费额度，公开仓库不花钱。
+
 ### 手机上怎么连模型
 
 | 你想用 | 怎么做 |
