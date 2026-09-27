@@ -1,0 +1,53 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安装 Capacitor CLI 并同步前端
+        run: |
+          npm install --no-audit --no-fund
+          npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 编译 APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-agent-studio-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: 发布到 Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete apk-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create apk-latest \
+            --prerelease \
+            --title "AI Agent Studio · 安卓 APK（自动构建）" \
+            --notes "GitHub Actions 自动编译。下载 app-debug.apk 装到手机即可。首次打开要在「设置 → 连接」填入电脑上的服务地址。" \
+            android/app/build/outputs/apk/debug/*.apk
