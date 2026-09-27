@@ -110,10 +110,10 @@ jobs:
             grep -nE "error:|CMake Error|FAILED|Could not|requires|^e: " build.log | head -40
             echo
             echo "=== Kotlin 错误 ==="
-            grep -m20 -E "^e: " build.log
+            grep -E "^e: " build.log | head -60
             echo
             echo "=== CMake 详细 ==="
-            grep -m20 -B2 -A6 "CMake Error" build.log
+            grep -m10 -B2 -A6 "CMake Error" build.log
             echo
             echo "=== 日志尾部 ==="
             tail -120 build.log
