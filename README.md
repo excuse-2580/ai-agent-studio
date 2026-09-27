@@ -217,3 +217,29 @@ ai-agent-studio/
 ## 许可
 
 MIT
+
+## 原生安卓 App（llama.cpp 编进 APK，真离线）
+
+仓库里的 **`android-native/`** 是一个完整的原生安卓工程：
+
+- **Kotlin + Jetpack Compose + Material Design 3**
+- **llama.cpp 通过 JNI 编进 APK**（`ggml_jni.cpp` + CMake → 单个 `libggml-jni.so`）
+- 勾选「手机本地 GGUF」→ 选 `.gguf` → 点加载，**离线 CPU 推理**
+- **不依赖 Termux、不依赖电脑、不用联网**
+- 云端侧：DeepSeek / Kimi / 智谱 / 硅基流动 / OpenAI 一键填写，
+  以及 Ollama、llama.cpp server、腾讯混元（TC3-HMAC-SHA256 签名）
+
+详细看：**[android-native/README.md](android-native/README.md)**
+
+### 让 GitHub 云端帮你编译 APK
+
+根目录的 `build-android.yml` 是现成的自动构建流水线。搬一下位置就能用：
+
+1. 打开仓库页面 → 右上角 **"+" → Create new file**
+2. 文件名填 `.github/workflows/build-android.yml`
+3. 把根目录 `build-android.yml` 里 `-----` 之间的内容粘进去 → **Commit**
+4. **Actions** 看进度 → 几分钟后 **Releases** 下载 `app-debug.apk`
+
+> 云端机器自带 JDK / Android SDK / NDK，会把 llama.cpp 交叉编译进 APK。
+> 模型文件不包含在 APK 里，装好后在 App 里选一个 `.gguf` 即可。
+
