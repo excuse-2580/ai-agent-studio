@@ -34,9 +34,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # 装 Android SDK 组件、接受 licenses、把 NDK/cmake 准备好
-      - name: 准备 Android SDK + NDK
-        uses: android-actions/setup-android@v3
+      # ubuntu-latest 自带 Android SDK（ANDROID_HOME）+ NDK + cmake，直接用就行。
+      # 之前用第三方 setup-android action，在云机器上会自己跑挂，去掉了。
+      - name: 检查 Android 环境
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
+          ls "$ANDROID_HOME" 2>/dev/null || echo "（没有 ANDROID_HOME）"
+          ls "$ANDROID_HOME/ndk" 2>/dev/null || echo "（没有 ndk 目录）"
+          ls "$ANDROID_HOME/platforms" 2>/dev/null | head
+          ls "$ANDROID_HOME/build-tools" 2>/dev/null | head
+          cmake --version | head -1
 
       - name: Gradle 缓存
         uses: gradle/actions/setup-gradle@v4
