@@ -2,9 +2,10 @@
  * 视图：设置 —— 主题 / 动态取色 / 对话行为 / 数据管理
  */
 import { icon } from '../icons.js';
-import { api } from '../api.js';
+import { api, getBase, setBase } from '../api.js';
 import { field, sliderField, showDialog, confirmDialog, toast } from '../ui.js';
 import { PRESET_SEEDS } from '../theme.js';
+import { installPWA, isIOS, isStandalone } from '../pwa.js';
 
 export function renderSettings(mount, ctx) {
   const s = ctx.state.settings;
@@ -212,6 +213,108 @@ export function renderSettings(mount, ctx) {
     })
   );
   page.appendChild(data);
+
+  /* ---------------- 连接（手机 / APK 用） ---------------- */
+  page.appendChild(section('连接', 'wifi'));
+  const conn = document.createElement('div');
+  conn.className = 'card card--outlined';
+
+  const baseField = field({
+    label: '服务地址（留空 = 当前页面同源）',
+    value: getBase(),
+    mono: true,
+    support: '手机连家里电脑上的模型时，填 http://192.168.x.x:5178',
+  });
+  const connWrap = document.createElement('div');
+  connWrap.style.padding = '14px 16px';
+  connWrap.appendChild(baseField.el);
+
+  const connRow = document.createElement('div');
+  connRow.className = 'row row--wrap';
+  connRow.style.marginTop = '10px';
+
+  const testBtn = document.createElement('button');
+  testBtn.className = 'btn btn--tonal btn--sm';
+  testBtn.innerHTML = `${icon('wifi', { size: 16 })}<span>测试连接</span>`;
+  testBtn.onclick = async () => {
+    const target = baseField.get().trim().replace(/\/+$/, '');
+    testBtn.disabled = true;
+    testBtn.querySelector('span').textContent = '测试中…';
+    try {
+      const res = await fetch(`${target || ''}/api/bootstrap`, { cache: 'no-store' });
+      const j = await res.json();
+      if (!res.ok || j?.ok === false) throw new Error(j?.error || `HTTP ${res.status}`);
+      toast(`✅ 连接成功：${j.data.agents.length} 个智能体 / ${j.data.models.length} 个模型源`);
+    } catch (err) {
+      toast('❌ 连不上这个地址。检查：地址写得对不对、电脑上服务有没有启动、两者是不是同一个 WiFi', {
+        duration: 7000,
+      });
+    } finally {
+      testBtn.disabled = false;
+      testBtn.querySelector('span').textContent = '测试连接';
+    }
+  };
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn btn--filled btn--sm';
+  saveBtn.innerHTML = `${icon('check', { size: 16 })}<span>保存并使用</span>`;
+  saveBtn.onclick = async () => {
+    setBase(baseField.get());
+    toast('服务地址已保存，正在重新连接…');
+    await ctx.reload();
+  };
+
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'btn btn--text btn--sm';
+  clearBtn.textContent = '恢复同源';
+  clearBtn.onclick = async () => {
+    setBase('');
+    baseField.set('');
+    toast('已恢复为当前页面地址');
+    await ctx.reload();
+  };
+
+  connRow.append(testBtn, saveBtn, clearBtn);
+  connWrap.appendChild(connRow);
+
+  const tip = document.createElement('p');
+  tip.className = 'muted';
+  tip.style.cssText = 'font:var(--body-s);margin:12px 0 0;line-height:1.7';
+  tip.innerHTML = `在手机上使用时：先让电脑和手机连同一个 WiFi，电脑上用 <code class="mono">HOST=0.0.0.0 npm start</code> 启动，再把电脑的局域网地址（终端里会打印）填到这里。
+    手机跑不动 llama.cpp，本地 .gguf 模型要在电脑上跑着，手机通过网络访问它；云端 API 则可以直接用。`;
+  connWrap.appendChild(tip);
+  conn.appendChild(connWrap);
+  page.appendChild(conn);
+
+  /* ---------------- 安装到手机 ---------------- */
+  page.appendChild(section('安装', 'download'));
+  const install = document.createElement('div');
+  install.className = 'card card--outlined';
+  const installWrap = document.createElement('div');
+  installWrap.style.padding = '14px 16px';
+  installWrap.innerHTML = `
+    <p style="margin:0;font:var(--body-l)">添加到手机主屏幕</p>
+    <p class="muted" style="margin:4px 0 12px;font:var(--body-s);line-height:1.7">
+      加到主屏幕后会有独立图标，打开是全屏，看起来跟装了个 App 一样。
+    </p>
+  `;
+  const installRow = document.createElement('div');
+  installRow.className = 'row row--wrap';
+  const iBtn = document.createElement('button');
+  iBtn.className = 'btn btn--filled btn--sm';
+  iBtn.innerHTML = `${icon('download', { size: 16 })}<span>安装到主屏幕</span>`;
+  iBtn.onclick = async () => {
+    const ok = await installPWA();
+    if (!ok) {
+      toast(isIOS() ? '在 Safari 里点「分享 → 添加到主屏幕」' : '浏览器菜单里选「安装应用 / 添加到主屏幕」', {
+        duration: 6000,
+      });
+    }
+  };
+  installRow.appendChild(iBtn);
+  installWrap.appendChild(installRow);
+  install.appendChild(installWrap);
+  page.appendChild(install);
 
   /* ---------------- 关于 ---------------- */
   page.appendChild(section('关于', 'info'));

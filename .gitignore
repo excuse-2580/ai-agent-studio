@@ -4,3 +4,11 @@ data/
 .DS_Store
 node_modules/
 .env
+
+# Python 工具缓存
+__pycache__/
+*.pyc
+
+# Capacitor / 构建产物
+android/app/src/main/assets/public/
+android/build/

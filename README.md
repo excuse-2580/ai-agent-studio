@@ -28,6 +28,71 @@ node server/index.js
 > 端口被占用？`PORT=6000 npm start`
 > Windows 用户也可以直接双击 `start.bat`，macOS / Linux 双击 `start.sh`。
 
+启动后终端会打印两个地址：
+
+```
+▸ 本机访问：  http://localhost:5178
+▸ 手机访问：  http://192.168.1.10:5178   ← 同一个 WiFi 就能用
+```
+
+---
+
+## 手机上使用
+
+手机跑不动 llama.cpp，本地 `.gguf` 模型只能在电脑上跑，所以手机是"遥控器"的角色：界面在手机上，模型和对话在电脑上。
+
+### 方式一：PWA（零安装，立刻能用）
+
+1. 电脑和手机连**同一个 WiFi**
+2. 电脑上启动服务（默认就监听了 `0.0.0.0`，不用额外配置）
+3. 手机浏览器打开终端里打印的 **手机访问** 地址，例如 `http://192.168.1.10:5178`
+4. 添加到主屏幕：
+   - **Android Chrome**：右上角菜单 → 「安装应用」或「添加到主屏幕」
+   - **iPhone Safari**：底部「分享」 → 「添加到主屏幕」
+   - 也可以在 App 内「设置 → 安装」点按钮，会引导你操作
+
+加完后桌面会出现小狼图标，点开是全屏无地址栏，跟装了个 App 一样。支持离线打开界面（Service Worker 已缓存应用外壳）。
+
+> 局域网是 http（非 https），完整 WebAPK 安装可能受浏览器限制，此时"添加到主屏幕"会以快捷方式形式存在，功能完全一样。想要完整安装体验就走下面的 APK 方案。
+
+### 方式二：编译成真正的安卓 APK
+
+仓库里已经放好了 **[Capacitor](https://capacitorjs.com) 安卓工程**（`android/`），在你自己的电脑上编译即可产出可安装的 `.apk`。
+
+前提：装好 [Android Studio](https://developer.android.com/studio)（含 Android SDK）和 JDK 17+。
+
+```bash
+git clone https://github.com/excuse-2580/ai-agent-studio.git
+cd ai-agent-studio
+npm install          # 装 Capacitor CLI
+
+npm run sync:android # 把前端资源同步进安卓工程
+npm run open:android # 用 Android Studio 打开工程
+```
+
+然后在 Android Studio 里 **Build → Build Bundle(s) / APK(s) → Build APK(s)**，
+产物在 `android/app/build/outputs/apk/debug/app-debug.apk`，传到手机装就行。
+
+也可以命令行直接出包：
+
+```bash
+npm run build:android   # 等价于 cap sync + ./gradlew assembleDebug
+```
+
+**第一次打开 APK 要填一次服务地址**：「设置 → 连接 → 服务地址」填入电脑上服务的地址（如 `http://192.168.1.10:5178`），点「测试连接」看到 ✅ 即可。之后就跟在电脑上用一样了。
+
+> APK 里只有前端界面，不含 Node 服务（安卓跑不了），所以电脑上要开着服务；
+> 如果你只想用云端 API，可以把服务部署到一台常开的机器（NAS / 小服务器 / 云主机）上，手机就随时能连。
+
+### 手机上怎么连模型
+
+| 你想用 | 怎么做 |
+| --- | --- |
+| 家里电脑的本地 `.gguf` | 电脑上跑着 `llama-server`，手机填电脑的局域网地址；数据不出家门，但要开着电脑 |
+| 云端 API（DeepSeek / Kimi 等） | 手机上直接填云端密钥，随时随地能用 |
+
+两种都支持，本来就是填地址的形式，随时切换。
+
 ---
 
 ## 三步上手
@@ -114,8 +179,11 @@ ai-agent-studio/
 │   ├── index.html
 │   ├── css/            MD3 design tokens + 组件样式
 │   └── js/             视图、组件、Markdown 渲染、主题
+├── android/            Capacitor 安卓工程（编译 APK 用）
+├── tools/              图标生成脚本
 ├── data/store.json     你的全部数据（已 gitignore）
 ├── start.bat / start.sh
+├── capacitor.config.json
 └── package.json
 ```
 
@@ -132,7 +200,9 @@ ai-agent-studio/
 
 **本地模型连不上？** 确认 `llama-server` 正在运行、`--port` 与填写的地址一致；用 `curl http://127.0.0.1:8080/v1/models` 自检。
 
-**想让局域网里的手机也访问？** 启动时加 `HOST=0.0.0.0`，然后用电脑的局域网 IP 访问。
+**想让局域网里的手机也访问？** 服务默认就监听 `0.0.0.0`，直接用终端打印的「手机访问」地址即可。
+
+**手机上打不开手机访问地址？** 检查：电脑和手机是否同一 WiFi；电脑防火墙是否放行了这个端口；服务是否还在运行。
 
 ## 许可
 

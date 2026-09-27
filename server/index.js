@@ -5,6 +5,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { URL } from 'node:url';
 
 import * as store from './store.js';
@@ -451,17 +452,35 @@ function serveStatic(req, res, pathname) {
 }
 
 server.listen(PORT, HOST, () => {
-  const shown = HOST === '0.0.0.0' ? 'localhost' : HOST;
   console.log('');
   console.log('  ╭───────────────────────────────────────────────╮');
   console.log('  │   AI Agent Studio 已启动                      │');
   console.log('  ╰───────────────────────────────────────────────╯');
   console.log('');
-  console.log(`  ▸ 本地访问：  http://localhost:${PORT}`);
+  console.log(`  ▸ 本机访问：  http://localhost:${PORT}`);
+  lanAddresses().forEach((ip) => {
+    console.log(`  ▸ 手机访问：  http://${ip}:${PORT}   ← 同一个 WiFi 就能用`);
+  });
   console.log(`  ▸ 数据文件：  ${store.STORE_FILE}`);
   console.log(`  ▸ 停止服务：  Ctrl + C`);
   console.log('');
 });
+
+/** 列出局域网 IPv4 地址，方便手机访问 */
+function lanAddresses() {
+  try {
+    const nets = os.networkInterfaces();
+    const out = [];
+    for (const list of Object.values(nets)) {
+      for (const n of list || []) {
+        if (n.family === 'IPv4' && !n.internal) out.push(n.address);
+      }
+    }
+    return [...new Set(out)].slice(0, 3);
+  } catch {
+    return [];
+  }
+}
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {

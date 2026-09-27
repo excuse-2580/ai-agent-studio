@@ -8,7 +8,11 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "gguf": "node server/gguf-cli.js"
+    "gguf": "node server/gguf-cli.js",
+    "sync:android": "cap sync android",
+    "open:android": "cap open android",
+    "build:android": "cap sync android && cd android && ./gradlew assembleDebug",
+    "icons": "python3 tools/gen-icons.py && python3 tools/gen-android-icons.py"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -21,5 +25,10 @@
     "llama.cpp",
     "material-design-3"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.2",
+    "@capacitor/core": "^6.2.2",
+    "@capacitor/android": "^6.2.2"
+  }
 }

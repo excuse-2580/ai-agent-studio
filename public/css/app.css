@@ -1494,3 +1494,13 @@
     opacity: 1;
   }
 }
+
+/* 安装为 App（standalone）后，避开刘海 / 状态栏 */
+@media (display-mode: standalone) {
+  .app {
+    padding-top: env(safe-area-inset-top);
+  }
+  .view {
+    -webkit-overflow-scrolling: touch;
+  }
+}

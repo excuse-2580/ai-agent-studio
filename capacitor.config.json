@@ -1,0 +1,16 @@
+{
+  "appId": "io.excuse2580.aas",
+  "appName": "AI Agent Studio",
+  "webDir": "public",
+  "loggingEnabled": false,
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "_comment": "webDir 指向纯静态前端 public。APK 内不含 Node 服务，首次打开请在「设置 → 连接」填入电脑服务地址，如 http://192.168.1.10:5178。调试时想直连电脑可临时加 server.url，打包前请删掉。"
+}

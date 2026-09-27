@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# 签名（不要提交密钥！）
+*.jks
+*.keystore
+keystore.properties
+
+# cap sync 自动生成
+app/src/main/assets/capacitor.config.json
+app/src/main/assets/capacitor.plugins.json
+app/src/main/assets/public/
