@@ -29,7 +29,7 @@ data class InferParams(
 )
 
 /** native 每生成一个 token 回调一次，返回 false 立即停 */
-interface TokenSink {
+fun interface TokenSink {
     fun onToken(text: String): Boolean
 }
 
