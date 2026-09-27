@@ -1,6 +1,7 @@
 package com.excuse2580.aas.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,7 @@ import com.excuse2580.aas.ui.SectionTitle
 import com.excuse2580.aas.vm.AppViewModel
 import java.util.UUID
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AgentScreen(vm: AppViewModel) {
     val agents by vm.agents.collectAsStateWithLifecycle()
