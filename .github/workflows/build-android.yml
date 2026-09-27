@@ -68,6 +68,29 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      # 失败时把日志尾部写回仓库，方便直接查看（这个文件不触发构建）
+      - name: 把失败日志写回仓库
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd android-native
+          {
+            echo "commit: ${GITHUB_SHA}"
+            echo "date:   $(date -u)"
+            echo "=== 错误片段 ==="
+            grep -nE "error:|error\.|FAILED|CMake Error|fatal:|Could not|failed" build.log | head -60
+            echo
+            echo "=== 日志尾部 ==="
+            tail -120 build.log
+          } > ../ci-fail-log.txt 2>&1 || true
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci-fail-log.txt
+          git commit -m "ci: 保存失败日志（自动）" || exit 0
+          git push
+
       - name: 上传 APK
         uses: actions/upload-artifact@v4
         with:
