@@ -107,7 +107,13 @@ jobs:
             grep -m8 -A4 "Caused by" build.log
             echo
             echo "=== 错误片段 ==="
-            grep -nE "error:|CMake Error|FAILED|Could not|requires" build.log | head -40
+            grep -nE "error:|CMake Error|FAILED|Could not|requires|^e: " build.log | head -40
+            echo
+            echo "=== Kotlin 错误 ==="
+            grep -m20 -E "^e: " build.log
+            echo
+            echo "=== CMake 详细 ==="
+            grep -m20 -B2 -A6 "CMake Error" build.log
             echo
             echo "=== 日志尾部 ==="
             tail -120 build.log
