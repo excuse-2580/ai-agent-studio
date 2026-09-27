@@ -1,0 +1,108 @@
+# ============================================================================
+#  把这个文件搬到 .github/workflows/build-apk-android.yml，GitHub 就会自动编译 APK
+#
+#  为什么放在根目录：当前令牌没有 workflow 权限，自动化写不进 .github/workflows/
+#
+#  操作（30 秒）：
+#    1. 打开 https://github.com/excuse-2580/ai-agent-studio
+#    2. 点右上角 "+" → Create new file
+#    3. 文件名填：.github/workflows/build-android.yml
+#       （GitHub 会自动创建目录）
+#    4. 把下面 ----- 之间的内容整段粘进去 → Commit changes
+#    5. Actions 标签页看编译，几分钟后去 Releases 下载 app-debug.apk
+# ============================================================================
+
+----- 从下一行开始复制 -----
+name: Build Android APK (llama.cpp + JNI)
+
+# 让 GitHub 的云机器帮你编译 APK：
+#   它自带 JDK / Android SDK / NDK，会把 llama.cpp 交叉编译进 APK，
+#   产物 app-debug.apk 自动发到 Releases，手机直接下载安装。
+#
+# 触发方式：
+#   1. push 代码到 main（且 android-native/ 下有改动）
+#   2. 手动：Actions → Build Android APK → Run workflow
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android-native/**'
+      - '.github/workflows/build-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 准备 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Gradle 缓存
+        uses: gradle/actions/setup-gradle@v4
+
+      # llama.cpp 源码不在仓库里（太大），编译时现拉
+      - name: 拉取 llama.cpp
+        working-directory: android-native
+        run: bash scripts/fetch-llama-cpp.sh
+
+      - name: 授权 gradlew
+        working-directory: android-native
+        run: chmod +x gradlew
+
+      # 只编 arm64-v8a：现代安卓手机都是 64 位，省一半编译时间和体积
+      - name: 编译 Debug APK
+        working-directory: android-native
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: 上传 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-agent-studio-android-apk
+          path: android-native/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: 发布到 Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          APK=$(ls android-native/app/build/outputs/apk/debug/*.apk | head -1)
+          echo "产物：$APK（$(du -h "$APK" | cut -f1））"
+
+          NOTES='GitHub Actions 自动编译，提交 ${{ github.sha }}
+
+          ## 装到手机
+          下载下面的 app-debug.apk，传到手机安装（提示"未知来源"时允许一次就行）。
+
+          ## 怎么用离线模型
+          1. 先下载一个 GGUF 模型放到手机上，推荐 Qwen2.5-1.5B-Instruct-Q4_K_M（约 1GB）
+          2. 打开 App →「模型」→ 选 .gguf → 点「加载」
+          3. 等状态变成"已就绪"，回「对话」页就能离线聊了
+
+          ## 云端模型
+          在「模型」页点 DeepSeek / Kimi / 智谱 / 硅基流动 / OpenAI / 混元 一键填写，
+          Ollama 和 llama.cpp server 填电脑的局域网地址也能用。'
+
+          # 覆盖式更新同一个预发布版本，避免堆积
+          gh release delete android-ci --yes --cleanup-tag 2>/dev/null || true
+          git push origin :refs/tags/android-ci 2>/dev/null || true
+
+          gh release create android-ci \
+            --prerelease \
+            --title "AI Agent Studio · 安卓 APK（自动构建）" \
+            --notes "$NOTES" \
+            "$APK"
+----- 复制到上一行结束 -----
