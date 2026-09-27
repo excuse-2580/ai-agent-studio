@@ -185,6 +185,17 @@ npm run build:android   # 等价于 cap sync + ./gradlew assembleDebug
 
 ---
 
+## 下载安卓 APK
+
+手机扫这个二维码，直达下载页（也可以直接在右侧 **Releases** 里下载 `app-debug.apk`）：
+
+![APK 下载二维码](docs/apk-download-qr.png)
+
+> APK 由 GitHub Actions 自动编译。首次打开要在「设置 → 连接」填入电脑上的服务地址，
+> 点「测试连接」看到 ✅ 就能开始聊天。
+
+---
+
 ## 目录结构
 
 ```
