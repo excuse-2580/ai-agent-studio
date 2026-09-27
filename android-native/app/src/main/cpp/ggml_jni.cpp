@@ -5,6 +5,9 @@
  * Kotlin 侧只看到一个 LlmEngine 类。
  *
  * 采样链是自己写的（temperature → top-k → top-p → 重复惩罚 → 多项式采样），
+ *
+ * 接口对齐 llama.cpp 当前 master：KV cache 走 llama_memory_t，
+ * model params 里已经没有 use_mmap。
  * 不走 llama.cpp 自带的 sampler，方便以后加 min-p、DRY 之类的玩法。
  *
  * 线程模型：Kotlin 在 Dispatchers.Default 线程上调用 nativeGenerate，
@@ -179,7 +182,9 @@ Java_com_excuse2580_aas_engine_LlmEngine_nativeLoad(JNIEnv *env, jobject,
     llama_backend_init();
 
     llama_model_params mp = llama_model_default_params();
-    mp.use_mmap = (bool)use_mmap;
+    // 注意：新版 llama.cpp 已经没有 use_mmap 字段了，
+    // mmap 由后端自己决定，这里保留参数只为兼容旧签名。
+    (void)use_mmap;
 
     llama_model *model = llama_model_load_from_file(spath.c_str(), mp);
     if (!model) {
@@ -228,7 +233,9 @@ JNIEXPORT void JNICALL
 Java_com_excuse2580_aas_engine_LlmEngine_nativeReset(JNIEnv *, jobject, jlong handle) {
     if (!handle) return;
     Engine *e = (Engine *)handle;
-    llama_kv_cache_clear(e->ctx);
+    // 新版把 KV cache 抽象成 llama_memory_t，没有 llama_kv_cache_clear 了
+    llama_memory_t mem = llama_get_memory(e->ctx);
+    if (mem) llama_memory_clear(mem, true);
     e->history.clear();
     e->n_past = 0;
     e->stop = false;
