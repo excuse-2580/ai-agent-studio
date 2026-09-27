@@ -120,7 +120,7 @@ fun AgentScreen(vm: AppViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun EditAgentDialog(
     initial: Agent,
